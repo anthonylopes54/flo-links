@@ -1,0 +1,21 @@
+{
+ "handle": "flosfooddiaries",
+ "followers": "1.2K",
+ "followers_count": null,
+ "updated": "2026-07-19",
+ "source": "snapshot (from Linktree card; live refresh pending Instagram API authorization)",
+ "posts": [
+  {
+   "file": "ig-1.webp",
+   "alt": "Cherry and chocolate swirl sourdough"
+  },
+  {
+   "file": "ig-2.webp",
+   "alt": "Homemade meatball sub"
+  },
+  {
+   "file": "ig-3.webp",
+   "alt": "Sourdough baguettes"
+  }
+ ]
+}

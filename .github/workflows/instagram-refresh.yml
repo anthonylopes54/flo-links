@@ -1,0 +1,60 @@
+name: Refresh Instagram card data
+
+# Fetches follower count + 3 latest posts for the card on the link page.
+# Does nothing (successfully) until the IG_ACCESS_TOKEN secret is set —
+# see the "Going live with Instagram data" runbook in CLAUDE.md.
+
+on:
+  schedule:
+    - cron: '17 3,15 * * *'   # twice a day, UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for token
+        id: gate
+        run: |
+          if [ -z "${{ secrets.IG_ACCESS_TOKEN }}" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "IG_ACCESS_TOKEN secret not set — leaving the committed snapshot in place."
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.skip != 'true'
+        with:
+          python-version: '3.12'
+
+      - name: Fetch Instagram data
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          GH_ROTATE_PAT: ${{ secrets.GH_ROTATE_PAT }}
+        run: |
+          pip install --quiet Pillow requests
+          python scripts/fetch_instagram.py
+          # Store the refreshed 60-day token, if rotation is configured
+          if [ -n "$GH_ROTATE_PAT" ] && [ -s .new-token ]; then
+            GH_TOKEN="$GH_ROTATE_PAT" gh secret set IG_ACCESS_TOKEN --repo "$GITHUB_REPOSITORY" < .new-token
+            echo "IG_ACCESS_TOKEN rotated."
+          fi
+          rm -f .new-token
+
+      - name: Commit if changed
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add instagram.json ig-1.webp ig-2.webp ig-3.webp
+          if git diff --cached --quiet; then
+            echo "No changes."
+          else
+            git commit -m "Refresh Instagram card data"
+            git push
+          fi
