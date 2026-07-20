@@ -443,19 +443,37 @@
       d.addEventListener('click', function(){ goTo(i, 'smooth'); });
       dots.appendChild(d);
     });
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){
-        var v = e.target.querySelector('video');
-        if (e.isIntersecting){
-          setCurrent(+e.target.dataset.i);
-          if (v){
-            if (!v.getAttribute('src') && v.dataset.src) v.src = v.dataset.src;
-            v.muted = v.muted; var pr = v.play(); if (pr) pr.catch(function(){});
-          }
-        } else if (v){ v.pause(); }
-      });
-    }, {root: track, threshold: [.6]});
-    slides.forEach(function(s){ io.observe(s); });
+    var settle = null;
+    track.addEventListener('scroll', function(){
+      clearTimeout(settle);
+      settle = setTimeout(update, 90);
+    }, {passive: true});
+  }
+
+  function centerIndex(){
+    var tr = track.getBoundingClientRect(), mid = tr.left + tr.width / 2;
+    var best = 0, bd = Infinity;
+    slides.forEach(function(s, i){
+      var r = s.getBoundingClientRect();
+      var d = Math.abs(r.left + r.width / 2 - mid);
+      if (d < bd){ bd = d; best = i; }
+    });
+    return best;
+  }
+  /* the slide nearest the track's center is "current": only it plays
+     (neighbors get their src preloaded but stay paused), and the dots
+     and View-on-Instagram link follow it. Desktop fits several slides
+     on screen at once, so visibility alone can't decide. */
+  function update(){
+    var idx = centerIndex();
+    setCurrent(idx);
+    slides.forEach(function(s, i){
+      var v = s.querySelector('video');
+      if (!v) return;
+      if (Math.abs(i - idx) <= 1 && !v.getAttribute('src') && v.dataset.src) v.src = v.dataset.src;
+      if (i === idx){ v.muted = true; var pr = v.play(); if (pr) pr.catch(function(){}); }
+      else v.pause();
+    });
   }
 
   function setCurrent(i){
@@ -477,7 +495,7 @@
     document.documentElement.style.overflow = 'hidden';
     var idx = 0;
     slides.forEach(function(s, i){ if (permalink && norm(s.dataset.permalink) === norm(permalink)) idx = i; });
-    goTo(idx); setCurrent(idx);
+    goTo(idx); update();
     closeBtn.focus();
   }
 
