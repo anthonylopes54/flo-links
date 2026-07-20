@@ -37,16 +37,32 @@ def human(n):
 
 
 me = get('me', fields='username,followers_count')
-media = get('me/media', fields='media_type,media_url,thumbnail_url,caption,permalink', limit=10)
+media = get('me/media',
+            fields='media_type,media_url,thumbnail_url,caption,permalink,like_count,comments_count',
+            limit=25)
 
 posts = []
+reels = []
 for m in media.get('data', []):
-    url = m.get('thumbnail_url') if m.get('media_type') == 'VIDEO' else m.get('media_url')
+    is_video = m.get('media_type') == 'VIDEO'
+    url = m.get('thumbnail_url') if is_video else m.get('media_url')
     if not url:
         continue
     caption = (m.get('caption') or '').split('\n')[0][:80].strip()
-    posts.append({'url': url, 'alt': caption or 'Instagram post', 'permalink': m.get('permalink')})
-    if len(posts) == 3:
+    if len(posts) < 3:
+        posts.append({'url': url, 'alt': caption or 'Instagram post', 'permalink': m.get('permalink')})
+    # carousel slides for the reel-preview modal; video/poster URLs are
+    # CDN-signed and expire, but each run re-signs them (12 h cadence)
+    reels.append({
+        'permalink': m.get('permalink'),
+        'type': 'video' if is_video else 'image',
+        'video': m.get('media_url') if is_video else None,
+        'poster': url,
+        'likes': m.get('like_count'),
+        'comments': m.get('comments_count'),
+        'caption': (m.get('caption') or '').split('\n')[0][:140].strip(),
+    })
+    if len(reels) == 24:
         break
 
 if len(posts) < 3:
@@ -69,6 +85,7 @@ pathlib.Path('instagram.json').write_text(json.dumps({
     'updated': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%MZ'),
     'source': 'instagram-graph-api',
     'posts': meta,
+    'reels': reels,
 }, indent=1) + '\n')
 
 # Long-lived tokens last 60 days; refresh on every run. The workflow

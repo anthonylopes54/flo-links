@@ -175,14 +175,105 @@
     position:absolute;
     top:0; left:50%;
     width:88px; height:110px;
-    object-fit:cover;
+    display:block;
+    padding:0;
+    overflow:hidden;
     border-radius:12px;
     border:2px solid rgba(255,255,255,.85);
     box-shadow:0 4px 14px rgba(0,0,0,.30);
   }
+  .igph img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .igph:focus-visible{ border-radius:12px; }
   .igph.left{ transform:translateX(-50%) translateX(-62px) rotate(-8deg) scale(.92); }
   .igph.center{ transform:translateX(-50%); z-index:2; }
   .igph.right{ transform:translateX(-50%) translateX(62px) rotate(8deg) scale(.92); }
+
+  /* reel preview modal: swipeable carousel of recent reels (native
+     muted-autoplay video from 12h-fresh signed URLs; per-slide fallback
+     to the official instagram.com embed). Nothing loads from Instagram
+     until a fan photo is clicked. */
+  .igmodal{
+    position:fixed; inset:0; z-index:10;
+    display:flex; flex-direction:column;
+    justify-content:center;
+    gap:14px;
+    background:rgba(15,10,7,.72);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+  }
+  .igmodal[hidden]{ display:none; }
+  .igtrack{
+    display:flex;
+    gap:14px;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:none;
+    padding:0 calc((100% - min(400px, 86vw)) / 2);
+  }
+  .igtrack::-webkit-scrollbar{ display:none; }
+  .igslide{
+    flex:0 0 min(400px, 86vw);
+    scroll-snap-align:center;
+    scroll-snap-stop:always;
+  }
+  .igslide-card{
+    background:#fff;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 18px 60px rgba(0,0,0,.5);
+  }
+  .igvidwrap{ position:relative; aspect-ratio:9/16; max-height:58svh; width:100%; background:#000; }
+  .igvidwrap video, .igvidwrap iframe, .igvidwrap img{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    border:0; display:block;
+    object-fit:cover; background:#000;
+  }
+  .igslide-meta{
+    padding:10px 14px 12px;
+    font-size:.85rem;
+    color:#1a120d;
+    text-shadow:none;
+  }
+  .igslide-meta .igcounts{ font-weight:600; margin-bottom:2px; }
+  .igslide-meta p{
+    overflow:hidden; display:-webkit-box;
+    -webkit-line-clamp:2; -webkit-box-orient:vertical;
+    color:rgba(26,18,13,.75);
+  }
+  .igdots{
+    display:flex; justify-content:center; gap:6px;
+    flex-wrap:wrap; padding:0 24px;
+  }
+  .igdots button{
+    width:7px; height:7px; border-radius:50%;
+    border:0; padding:0; cursor:pointer;
+    background:rgba(255,255,255,.35);
+  }
+  .igdots button.on{ background:#fff; }
+  .igmodal-bar{ display:flex; justify-content:center; align-items:center; gap:12px; }
+  .igview{
+    display:inline-block;
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.30);
+    backdrop-filter:blur(16px) saturate(1.5);
+    -webkit-backdrop-filter:blur(16px) saturate(1.5);
+    border-radius:9999px;
+    color:#fff; text-decoration:none;
+    font-size:.9rem; font-weight:600;
+    padding:11px 22px;
+  }
+  .igmodal-close{
+    width:42px; height:42px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,.4);
+    background:rgba(20,14,10,.65);
+    color:#fff;
+    font-size:1.05rem; line-height:1;
+    cursor:pointer;
+    display:grid; place-items:center;
+  }
+  .igmodal-close:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
   .igmeta{
     font-size:.92rem;
     margin-bottom:12px;
@@ -244,9 +335,9 @@
       <a class="link" data-goatcounter-click="substack" href="https://open.substack.com/pub/flosfooddiaries?utm_source=bio_link&utm_medium=link_page"><img class="thumb" alt="" src="data:image/webp;base64,UklGRsQKAABXRUJQVlA4ILgKAADQJQCdASpQAFAAPmEgjUWkIiEdbVYAQAYEtgBWza+HM+H80+zNpOQDbZ/0vqY21vPB+if+7ejp1FPoAdLF/oLQn3c/fPAXw1+tc6nAH1m6hHy78UYquQLwc1AvXPm/vBnBHdXvzdSbwh7AHkT/p/Ai++f8/2AP0n6J2cr6v/aT4CP126xP7x+zK6NpLqkcTfb3FqNP2+j2KneYXNavGR8Vso6XWGyhn9P/3qAKlyqmWmodHBzNM/CWxf3ZStZO9GULPbr8IKe0qMZURTvTBapZX9HupoGj8sX6ql4/N5Ts0N8pbyquLoD+qhl4E6xxOgOFvQ69A+7R9ALLy7Y03TDKKdvmrCgIVcJRSGbwnL7brMgRrqiXlt+H+0OHwYCCxXKCVt3CGjWrrcMb5saMXYffALJPwVkLAAD+rHp3vTV5B88Pjn34xEjeTTLfB/5HybYZsyRu02KisY1p9imzqHoRm/D2S+WgXQoXhj10bKUsfKMS20ajMtC92BGwE+S7zKtHOdCSP8sw/495zoCkXboyb9qYWUK6v6OkPchtF35r8c9GJnBBNbmxsN14WGGNuL27LBLi6AQfslcok5iPGest4StH5UuIejhv3C583mgI7DjMbWoMKmgwWaNLu0SM8E7mbmPF/m7luqF2lvlkndmyCywmY9u7TfiIgCn4UW+kOjIadWDDHU/23JrsabMk3FPKLxxNPB7qePe6GdzpJIQt/D6iLPjM5x6ldli/V8rn45GeCEWYC0xlLKk0BybXMlMTt86sLriJwIkKezynZPKgfHhLJ7as99zhoMr8RfXVDv6G1WkAzTms4OaarvdyFLWMVPambiOUOmVpCrcPcYRDraqx7G256JXkD7YbzEDqeLwOBeFtvkeV1fkXkulZwY/r/07iXkSchEseQzezPPvRmZTUgy0jZ/qOFAzUT+wuhnq4zvheYA7HB0aRzbwzf5e2tLqria8YFBkT/8NCyXwkxZYlgNSl4k1cyq0Z5D3/iq1wkr8d+Lka905agufMSJIvwk3+E+pBucb4md/K2pBXdiEa1k0dT+h8+Pdc4iWDYfX6fxEmRlyF/dRVAtAB5qZ7TelqApYgGc4SwBaLBAcuJIZt587nosNYCaGu10Bhk14ER8RPXNIs7qvtMupBii3qFottkwaFMzy8C4wt7ig1GVj3+nZuT3PSPEkB/9w7hesxqNaxjuXt5oWp52IgsN6iobi3YBh5/l7tgd7frpWe42Cye0GGmANLljk/EuC0+TdiZ0+6FYpASvtCH1rHBrSzp+qGgilBVHZyGZCcyO5Nb8hZ2OZ6qTVdMjDD2PZHIuG7T5aVq2WwsjyWt2cpNH8PjVweaMqUOS0QH+JsBvCDth92ZVoFgaM6Tskq6kRWW+LXSWkuqES7QcbJqDlzvmAD1xTh9cf4ZB4Z+NJ4zq807Fk7HsA2y9FUdOBh5f73Bu62Pj8MhHcff0Yq5RcPCUkZpwLJTJNFqR5XINK6aHGxPsVgRiFvHxd7aZGkyJQD4gss9trLk1xsFCCjtSkrfsHqePuCmC3xqr62yj52yHXOBrTcn7yunvt7d83OnuX6yZn4LbYA0FBzVtV0idv9Od9Ld6iDOfQzCh+kRlwd3+EzO6PgOPJEc0vQQK81W8TG6O99KJ6HRTz78fFbTjkbWZQYEv/PaQ2Tm6oLwMWyOupFlVFJwjrln/uR876kd2XnuJVqK8yvgiVu/y9FxTycjAInZIhjluWykUhjn5MS83X8kfIeIF/fOP5+UZczYIO/sSG4w9vxbZrRHMVi1TUJF/1p4/mUnaqvUahA35XgjZ1b4pZcygOwY66OdJiki7yCA5wjRb8jGI7QVSD5pY03R/Nc4/ZTl+FUNzXRYWnr3nzbgaZRFMTeZC92nU9KQbylCkv3g5dU716t23+SPRhWFGA5Z+p+U0apKSUOLXJcUV6O2XajZLJaQu553q1qfFDdAKAkkQIMaXMZmdT32eefqUOD7sRbApFw8jZOLY34/wsH7B4wudjm9ydebASeHjZDuHuqsWgpIHd2Xs6IMP772KH9JkvPshb2r5qM0rkmTlQchlmf7Tr+B7SSf4eO117bJRHzE/v5Ita1nhMuAOT8/5uKFW+X9J4cL95uYm2KnPMidUy30Ej1HMpVegKppgzXW/8bgwSHmhpbfR3AdxBTN0eLVWnqwJVbbe2vejSjJI9DjHn1LnY4U5h43fJ3Fwm2oqvTMUOF49uFLm+2QDNPW5tePdFCsclKyVd1EgOM+00wP3mj0T8b8Mxoe4C5tzumYBjXtDBYJgCn0yEkDw/9ARhmI+xKnIb7jAt+8vMyfwtZYtvDqd5G+LM34F4mH/kkt97frLoyRl9cs+TchOg3iNKEg3yt4C9ljwFIvsjzX29uhnxq+91eeMEVarnCEMYXyQaBlKVxnEv7zX1JkFMPssasWQ5g6CaRn+psUapXsKMacyHlj1trbjBMqLWhyOUmbUge2PB87jKJFqpoh3MtSk2w+jzqqFm0d0xQ7cYpVoSyn0R2rgjORb/Ha7SxWEpcO42SwJKemGUtP5CMCfXLCZanoZszocgBuxW0r+MR26QL1KkZRu1lm2SZhPM6lS1HQz0Uy/9FBBCGLMhc7A/1lbxHAxtmZgK0uSdwVsn2aSRXKuxM40wLfSxGMRWTtyHZx7MzBpQWPyI+yjrYEzJ3U8KLTlZEZvuLOdu3MitxTy899UG+zgod/AREbw+W2Nl+OBBuRZUpJkzMrvM6Filp7k7xalWvnlhiN4K3hPfmW5x9RCqKiC/Ym/uZvsgtPMAOtQPEkearVa6tHEFOjbqjVUdZYJNv4AYzKho0VjPLJjD0GDXfX05VECXw0i0gIfI22ak1AfxlIOskPfzeXWWHZWBINbc6HlHYCWLFFWmA6Qt/HL5cOADxfD+CDLtH7TO3rd+QzTRlPwIO961sWjYtQn8ZFCR20bWvSynJRISyRqlNb2METT3Tv4s+i09khpR458kSUc1vFH7lrC8ytg46NpGNG5Td/TrW8QKG5GRJOchQGua88Hi+Mpcx6mPrrtpoG4zEYmE+PAU79EYl6AIRMkti0wq8S2nFAZxH7/nr4tF8fqwTYU8YxvzfNVlmjoZ3C5F2RBLBJWLVhNjfhgW8hN2+xqWKfRDfqOTalwf+oSqJfQ88CTW4Fy8tvGozjhOz/pMkEwLf7/s5cSWU/pxkW+ISV2bjTCmFzW2AMcovYKNKJl8lrrn+qXlamyoVfG/pqNHvS1vEB6rn/7hGheG0p3VCED9/axNDs9gbSD9Np4Uo7qJGznxPRHP0e8koEOeqq0JPtKZcF89B4T8XzxKa9rdtLctu0FP2aU48YugpBCgF0oUl8B0tc2WfTdecl8NDz9p6V3dncjVpHC9WTCCVCNeUYw7TfvxicJpaGX6s6gCWSt+UZPbVcej/TcCUm2gUlPLd0mDLNaq9KTp6NEABNaAj2qSE0tAzE/zLKU7YRRFdJalTbDj6vKJaxwkiyldAVocDlMIMaPA1wKiy2BFbm5+u5jp78pR6MxcM2qmr2oMdkn8o3BHd+NI9bxQi9q0OdjEGsUoBX1ZMpoutKcq5fWQ32ZqyUDCCV8bj0f4nu3PAaplHMxQj0l0wDJexBQqF0Rx1zd36SsyVfd3Ucutc7CuA4CkeBTAAAA==">GET MY RECIPES HERE!</a>
       <div class="igcard">
         <div class="igfan">
-          <img class="igph left" id="ig-post-1" src="ig-2.webp" alt="Homemade meatball sub">
-          <img class="igph center" id="ig-post-0" src="ig-1.webp" alt="Cherry and chocolate swirl sourdough">
-          <img class="igph right" id="ig-post-2" src="ig-3.webp" alt="Sourdough baguettes">
+          <a class="igph left" id="ig-link-1" href="https://www.instagram.com/reel/Da21xgpBFv5/" target="_blank" rel="noopener" data-goatcounter-click="instagram-preview" aria-label="Play Instagram reel: Homemade meatball sub"><img id="ig-post-1" src="ig-2.webp" alt=""></a>
+          <a class="igph center" id="ig-link-0" href="https://www.instagram.com/reel/Da6dDtXv5mP/" target="_blank" rel="noopener" data-goatcounter-click="instagram-preview" aria-label="Play Instagram reel: Cherry and chocolate swirl sourdough"><img id="ig-post-0" src="ig-1.webp" alt=""></a>
+          <a class="igph right" id="ig-link-2" href="https://www.instagram.com/reel/DawGsvcvYsO/" target="_blank" rel="noopener" data-goatcounter-click="instagram-preview" aria-label="Play Instagram reel: Sourdough baguettes"><img id="ig-post-2" src="ig-3.webp" alt=""></a>
         </div>
         <p class="igmeta">flosfooddiaries · <span id="ig-followers">1.2K</span> followers</p>
         <a class="link" data-goatcounter-click="instagram" href="https://www.instagram.com/flosfooddiaries"><img class="thumb" alt="" src="data:image/webp;base64,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">Follow on Instagram</a>
@@ -262,22 +353,167 @@
   </div>
 </main>
 
+<div class="igmodal" id="ig-modal" role="dialog" aria-modal="true" aria-label="Instagram reels preview" hidden>
+  <div class="igtrack" id="ig-track" tabindex="0" aria-label="Recent Instagram reels"></div>
+  <div class="igdots" id="ig-dots" aria-hidden="true"></div>
+  <div class="igmodal-bar">
+    <a class="igview" id="ig-view" href="https://www.instagram.com/flosfooddiaries" target="_blank" rel="noopener">View on Instagram ↗</a>
+    <button class="igmodal-close" id="ig-modal-close" aria-label="Close preview">✕</button>
+  </div>
+</div>
+
 <script>
-/* Hydrate the Instagram card from instagram.json (kept fresh by the
-   scheduled workflow). Fails silent: the committed snapshot stays. */
+/* Reels carousel modal + card hydration. Slides come from
+   instagram.json "reels" (video URLs re-signed every workflow run);
+   each slide falls back to the official instagram.com /embed/ iframe
+   if its video fails, and the whole modal falls back to embeds of the
+   three fan permalinks if the JSON is missing. No Instagram contact
+   until a visitor clicks a fan photo. Without JS the photos are plain
+   links to the reels. */
 (function(){
+  var modal = document.getElementById('ig-modal');
+  var track = document.getElementById('ig-track');
+  var dots = document.getElementById('ig-dots');
+  var viewLink = document.getElementById('ig-view');
+  var closeBtn = document.getElementById('ig-modal-close');
+  var igdata = null, slides = [], opener = null, built = false, current = 0;
+  var norm = function(u){ return (u || '').replace(/\/+$/, ''); };
+
+  function embedFallback(wrap, permalink){
+    if (!permalink || wrap.querySelector('iframe')) return;
+    wrap.innerHTML = '';
+    var f = document.createElement('iframe');
+    f.title = 'Instagram reel';
+    f.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; clipboard-write');
+    f.setAttribute('allowfullscreen', '');
+    f.src = norm(permalink) + '/embed/';
+    wrap.appendChild(f);
+  }
+
+  function slideFor(item, i){
+    var s = document.createElement('div');
+    s.className = 'igslide'; s.dataset.i = i; s.dataset.permalink = item.permalink || '';
+    var card = document.createElement('div'); card.className = 'igslide-card';
+    var wrap = document.createElement('div'); wrap.className = 'igvidwrap';
+    if (item.type === 'video' && item.video){
+      var v = document.createElement('video');
+      v.playsInline = true; v.setAttribute('playsinline', '');
+      v.muted = true; v.loop = true; v.controls = true; v.preload = 'none';
+      if (item.poster) v.poster = item.poster;
+      v.dataset.src = item.video;
+      v.addEventListener('error', function(){ embedFallback(wrap, item.permalink); }, true);
+      wrap.appendChild(v);
+    } else if (item.type === 'image' && item.poster){
+      var im = document.createElement('img'); im.src = item.poster; im.alt = item.caption || '';
+      wrap.appendChild(im);
+    } else {
+      embedFallback(wrap, item.permalink);
+    }
+    card.appendChild(wrap);
+    var meta = document.createElement('div'); meta.className = 'igslide-meta';
+    var counts = [];
+    if (item.likes != null) counts.push('♥ ' + item.likes);
+    if (item.comments != null) counts.push('💬 ' + item.comments);
+    if (counts.length){
+      var c = document.createElement('div'); c.className = 'igcounts';
+      c.textContent = counts.join('   ');
+      meta.appendChild(c);
+    }
+    if (item.caption){ var p = document.createElement('p'); p.textContent = item.caption; meta.appendChild(p); }
+    if (meta.children.length) card.appendChild(meta);
+    s.appendChild(card);
+    return s;
+  }
+
+  function build(){
+    if (built) return; built = true;
+    var list = (igdata && igdata.reels && igdata.reels.length) ? igdata.reels : (function(){
+      var l = [];
+      for (var i = 0; i < 3; i++){
+        var a = document.getElementById('ig-link-' + i);
+        if (a) l.push({permalink: a.href, type: 'embed'});
+      }
+      return l;
+    })();
+    list.forEach(function(item, i){
+      var s = slideFor(item, i);
+      track.appendChild(s); slides.push(s);
+      var d = document.createElement('button');
+      d.setAttribute('aria-label', 'Reel ' + (i + 1));
+      d.addEventListener('click', function(){ goTo(i, 'smooth'); });
+      dots.appendChild(d);
+    });
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        var v = e.target.querySelector('video');
+        if (e.isIntersecting){
+          setCurrent(+e.target.dataset.i);
+          if (v){
+            if (!v.getAttribute('src') && v.dataset.src) v.src = v.dataset.src;
+            v.muted = v.muted; var pr = v.play(); if (pr) pr.catch(function(){});
+          }
+        } else if (v){ v.pause(); }
+      });
+    }, {root: track, threshold: [.6]});
+    slides.forEach(function(s){ io.observe(s); });
+  }
+
+  function setCurrent(i){
+    current = i;
+    Array.prototype.forEach.call(dots.children, function(d, j){ d.className = j === i ? 'on' : ''; });
+    var s = slides[i];
+    if (s && s.dataset.permalink) viewLink.href = s.dataset.permalink;
+  }
+
+  function goTo(i, behavior){
+    var s = slides[i]; if (!s) return;
+    s.scrollIntoView({behavior: behavior || 'instant', inline: 'center', block: 'nearest'});
+  }
+
+  function openModal(permalink, from){
+    opener = from || null;
+    build();
+    modal.hidden = false;
+    document.documentElement.style.overflow = 'hidden';
+    var idx = 0;
+    slides.forEach(function(s, i){ if (permalink && norm(s.dataset.permalink) === norm(permalink)) idx = i; });
+    goTo(idx); setCurrent(idx);
+    closeBtn.focus();
+  }
+
+  function closeModal(){
+    modal.hidden = true;
+    document.documentElement.style.overflow = '';
+    slides.forEach(function(s){ var v = s.querySelector('video'); if (v) v.pause(); });
+    if (opener) opener.focus();
+    opener = null;
+  }
+
+  for (var i = 0; i < 3; i++) (function(a){
+    if (a) a.addEventListener('click', function(ev){ ev.preventDefault(); openModal(a.href, a); });
+  })(document.getElementById('ig-link-' + i));
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', function(ev){ if (ev.target === modal) closeModal(); });
+  document.addEventListener('keydown', function(ev){
+    if (modal.hidden) return;
+    if (ev.key === 'Escape') closeModal();
+    if (ev.key === 'ArrowRight') goTo(Math.min(current + 1, slides.length - 1), 'smooth');
+    if (ev.key === 'ArrowLeft') goTo(Math.max(current - 1, 0), 'smooth');
+  });
+
   fetch('instagram.json', {cache: 'no-cache'})
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
       if (!d) return;
+      igdata = d;
       var f = document.getElementById('ig-followers');
       if (f && d.followers) f.textContent = d.followers;
       (d.posts || []).slice(0, 3).forEach(function(p, i){
-        var el = document.getElementById('ig-post-' + i);
-        if (el && p.file){
-          el.src = p.file + '?u=' + encodeURIComponent(d.updated || '');
-          if (p.alt) el.alt = p.alt;
-        }
+        var img = document.getElementById('ig-post-' + i);
+        var a = document.getElementById('ig-link-' + i);
+        if (img && p.file) img.src = p.file + '?u=' + encodeURIComponent(d.updated || '');
+        if (a && p.permalink) a.href = p.permalink;
+        if (a && p.alt) a.setAttribute('aria-label', 'Play Instagram reel: ' + p.alt);
       });
     })
     .catch(function(){});
