@@ -1,21 +1,24 @@
 {
  "handle": "flosfooddiaries",
  "followers": "1.2K",
- "followers_count": null,
- "updated": "2026-07-19",
- "source": "snapshot (from Linktree card; live refresh pending Instagram API authorization)",
+ "followers_count": 1169,
+ "updated": "2026-07-20T02:19Z",
+ "source": "instagram-graph-api",
  "posts": [
   {
    "file": "ig-1.webp",
-   "alt": "Cherry and chocolate swirl sourdough"
+   "alt": "CHERRY & CHOCOLATE SOURDOUGH \ud83c\udf52\ud83c\udf6b I mean\u2026 JUST LOOK AT THAT SWIRL!!!!",
+   "permalink": "https://www.instagram.com/reel/Da6dDtXv5mP/"
   },
   {
    "file": "ig-2.webp",
-   "alt": "Homemade meatball sub"
+   "alt": "MEATBALL SUB \ud83c\udf5d\ud83e\udd56 This was SOOO GOOOOD \ud83e\udd24\u2764\ufe0f",
+   "permalink": "https://www.instagram.com/reel/Da21xgpBFv5/"
   },
   {
    "file": "ig-3.webp",
-   "alt": "Sourdough baguettes"
+   "alt": "First sourdough baguette attempt! \ud83e\udd56",
+   "permalink": "https://www.instagram.com/reel/DawGsvcvYsO/"
   }
  ]
 }
